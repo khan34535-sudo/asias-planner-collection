@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asia's Planner Collection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-animation div {
+            position: absolute;
+            display: block;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            bottom: -150px;
+            animation: floatUp 15s infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-1200px) rotate(720deg); opacity: 0; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD700, #FFA500, #FF6B35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 1px;
+        }
+
+        .subtitle span {
+            color: #FFD700;
+        }
+
+        /* Cards Grid */
+        .planner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .planner-card {
+            background: white;
+            border-radius: 30px;
+            padding: 35px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .planner-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Card specific styles */
+        .dark-card {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: white;
+        }
+
+        .white-card {
+            background: linear-gradient(135deg, #ffffff, #f5f5f5);
+            color: #333;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-dark {
+            background: #FF9E80;
+            color: #1a1a1a;
+        }
+
+        .badge-white {
+            background: #6B2E8E;
+            color: white;
+        }
+
+        .card-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .dark-card .card-title {
+            background: linear-gradient(135deg, #FF9E80, #80CFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .white-card .card-title {
+            background: linear-gradient(135deg, #FF6B35, #A855F7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            opacity: 0.85;
+        }
+
+        .card-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .feature-tag {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .dark-card .feature-tag {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ddd;
+        }
+
+        .white-card .feature-tag {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .launch-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .dark-card .launch-btn {
+            background: linear-gradient(135deg, #FF9E80, #FF6B35);
+            color: white;
+        }
+
+        .white-card .launch-btn {
+            background: linear-gradient(135deg, #6B2E8E, #A855F7);
+            color: white;
+        }
+
+        .launch-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .comparison-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .comparison-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .comparison-item h4 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+
+        .comparison-item ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .comparison-item li {
+            padding: 8px 0;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-item li::before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            .planner-grid { grid-template-columns: 1fr; }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .main-title { font-size: 2.5rem; }
+            .container { padding: 30px 15px; }
+        }
+
+        @media print {
+            body { background: white; }
+            .bg-animation, .comparison-section, .footer { display: none; }
+            .planner-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="main-title">📔 Asia's Planner Collection 📅</h1>
+            <div class="subtitle">Choose your preferred style | <span>Dark Mode</span> or <span>Light Mode</span></div>
+        </div>
+
+        <!-- Planner Grid -->
+        <div class="planner-grid">
+            
+            <!-- Dark Version Card -->
+            <div class="planner-card dark-card" onclick="location.href='planner-dark.html'">
+                <span class="card-badge badge-dark">🌙 DARK MODE</span>
+                <div class="card-icon">🌙📔</div>
+                <h2 class="card-title">Night Edition</h2>
+                <p class="card-description">
+                    Dark themed digital planner perfect for night owls. Features date/time stamp, 100+ sheets, and print functionality.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">🌙 Dark Theme</span>
+                    <span class="feature-tag">📅 100+ Sheets</span>
+                    <span class="feature-tag">🖨️ Print</span>
+                    <span class="feature-tag">🕌 Prayer Tracker</span>
+                    <span class="feature-tag">✨ Animated Decor</span>
+                </div>
+                <button class="launch-btn">▶ LAUNCH DARK PLANNER</button>
+            </div>
+
+            <!-- White Version Card -->
+            <div class="planner-card white-card" onclick="location.href='planner-white.html'">
+                <span class="card-badge badge-white">☀️ LIGHT MODE</span>
+                <div class="card-icon">☀️📓</div>
+                <h2 class="card-title">Day Edition</h2>
+                <p class="card-description">
+                    Clean white themed digital planner for bright workspaces. Same powerful features in a lighter package.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">☀️ Light Theme</span>
+                    <span class="feature-tag">📅 100+ Sheets</span>
+                    <span class="feature-tag">🖨️ Print</span>
+                    <span class="feature-tag">🕌 Prayer Tracker</span>
+                    <span class="feature-tag">✨ Animated Decor</span>
+                </div>
+                <button class="launch-btn">▶ LAUNCH WHITE PLANNER</button>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div class="comparison-section">
+            <h3 class="comparison-title">📊 Features Comparison</h3>
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <h4>🌙 Dark Version</h4>
+                    <ul>
+                        <li>Dark gradient background (#0a0a0a to #1a1a1a)</li>
+                        <li>Light colored text for readability</li>
+                        <li>Glowing neon-like accents</li>
+                        <li>Perfect for low-light environments</li>
+                        <li>Floating flower & butterfly animations</li>
+                    </ul>
+                </div>
+                <div class="comparison-item">
+                    <h4>☀️ White Version</h4>
+                    <ul>
+                        <li>Clean white background (#ffffff to #f5f5f5)</li>
+                        <li>Dark text for contrast</li>
+                        <li>Subtle shadow effects</li>
+                        <li>Perfect for bright workspaces</li>
+                        <li>Same animations with lighter opacity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Common Features -->
+        <div class="comparison-section" style="margin-top: 20px;">
+            <h3 class="comparison-title">✨ Both Versions Include</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    📍 Date/Time Stamp
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    📄 100+ Sheets
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    🖨️ Print Feature
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    💾 Auto-Save
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    🕌 Prayer Tracker
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    📊 Monthly/Weekly/Daily
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    ✅ Task Checkboxes
+                </div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; text-align: center;">
+                    📱 Mobile Responsive
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🌸 Asia's Planner Collection | Choose your preferred theme 🌸</p>
+            <p style="margin-top: 8px;">All data saved locally in your browser | Print any sheet with one click</p>
+        </div>
+    </div>
+
+    <script>
+        // Create floating background animation
+        const bgAnimation = document.getElementById('bgAnimation');
+        for (let i = 0; i < 30; i++) {
+            const div = document.createElement('div');
+            const size = Math.random() * 30 + 10;
+            const left = Math.random() * 100;
+            const delay = Math.random() * 10;
+            const duration = Math.random() * 20 + 10;
+            div.style.width = `${size}px`;
+            div.style.height = `${size}px`;
+            div.style.left = `${left}%`;
+            div.style.animationDelay = `${delay}s`;
+            div.style.animationDuration = `${duration}s`;
+            div.style.background = `rgba(255, ${Math.random() * 100 + 100}, ${Math.random() * 100 + 100}, 0.15)`;
+            div.style.borderRadius = '50%';
+            bgAnimation.appendChild(div);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') {
+                window.location.href = 'planner-dark.html';
+            } else if (e.key === '2') {
+                window.location.href = 'planner-white.html';
+            }
+        });
+    </script>
+</body>
+</html>

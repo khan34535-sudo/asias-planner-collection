@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asia's Planner - Multi-Sheet Digital Planner</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      min-height: 100vh;
+      color: #ffffff;
+      position: relative;
+    }
+
+    /* Floating decorations */
+    .flower, .butterfly {
+      position: fixed;
+      opacity: 0.3;
+      z-index: 1;
+      pointer-events: none;
+      animation: float 8s infinite ease-in-out;
+    }
+
+    .butterfly { animation: flutter 12s infinite ease-in-out; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    @keyframes flutter {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(10px, -15px) rotate(5deg); }
+      50% { transform: translate(20px, 0) rotate(0deg); }
+      75% { transform: translate(10px, 15px) rotate(-5deg); }
+    }
+
+    /* Planner Container */
+    .planner-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+      border-radius: 20px;
+      padding: 15px 25px;
+      margin-bottom: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      border: 1px solid #FF9E80;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .sheet-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .sheet-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0a0a0a;
+      padding: 8px 15px;
+      border-radius: 40px;
+      border: 1px solid #80CFFF;
+    }
+
+    .sheet-selector label {
+      color: #80CFFF;
+      font-weight: bold;
+    }
+
+    #sheetNumber {
+      background: #1a1a1a;
+      border: 1px solid #FF9E80;
+      color: #FF9E80;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 70px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #FF9E80, #FF6B35);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 40px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #80CFFF, #3B82F6);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #80FFD4, #4CAF50);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #FFFF80, #FFA500);
+      color: #000;
+    }
+
+    .datetime-display {
+      background: #0a0a0a;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-family: monospace;
+      font-size: 1.1em;
+      border: 1px solid #D080FF;
+      color: #D080FF;
+    }
+
+    /* Sheet Navigation */
+    .sheet-navigation {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0a0a0a;
+      padding: 5px 15px;
+      border-radius: 40px;
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D080FF, #A855F7);
+      border: none;
+      color: white;
+      font-size: 1.2em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .sheet-indicator {
+      font-weight: bold;
+      color: #FF9E80;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* Page Styles (reused from original) */
+    .page {
+      background: #121212;
+      border-radius: 25px;
+      padding: 40px;
+      margin-bottom: 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      border: 2px solid #333333;
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+
+    .page::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #FF9E80, #80CFFF, #D080FF, #80FFD4, #FFFF80);
+      border-radius: 25px 25px 0 0;
+    }
+
+    .page-title {
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 30px;
+      background: linear-gradient(45deg, #FF9E80, #FFCC80, #FF9E80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-header {
+      font-size: 2em;
+      margin-bottom: 25px;
+      padding: 20px;
+      border-radius: 15px;
+      font-weight: bold;
+      color: #000000;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .monthly-bg { background: linear-gradient(135deg, #80FFD4, #80FFB2); }
+    .weekly-bg { background: linear-gradient(135deg, #D080FF, #B280FF); }
+    .daily-bg { background: linear-gradient(135deg, #80CFFF, #80AFFF); }
+
+    /* Calendar Grid */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      background: #80CFFF;
+      border: 3px solid #80CFFF;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .calendar-header {
+      background: linear-gradient(135deg, #FF9E80, #FFB280);
+      padding: 20px 10px;
+      text-align: center;
+      font-weight: bold;
+      color: #000;
+    }
+
+    .calendar-cell {
+      background: #1a1a1a;
+      min-height: 120px;
+      padding: 8px;
+    }
+
+    .calendar-cell textarea {
+      width: 100%;
+      height: 100px;
+      background: transparent;
+      border: none;
+      color: #80CFFF;
+      resize: none;
+      outline: none;
+    }
+
+    /* Other styles (keeping original styling) */
+    .notes-section, .priorities-box, .day-box, .habit-tracker,
+    .focus-box, .schedule-section, .tasks-section, .nutrition-section,
+    .exercise-section, .reflection-section, .spiritual-section {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .priority-item {
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .priority-item input {
+      flex: 1;
+      padding: 12px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #80FFD4;
+    }
+
+    .day-box h4 {
+      color: #000;
+      margin-bottom: 10px;
+    }
+
+    .day-box textarea {
+      width: 100%;
+      min-height: 80px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #80FFD4;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    .habit-row {
+      display: grid;
+      grid-template-columns: 2fr repeat(7, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    .habit-checkbox {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #000;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      background: #1a1a1a;
+      transition: all 0.2s ease;
+    }
+
+    .habit-checkbox.checked {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+    }
+
+    .prayer-habit .habit-checkbox.checked {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #000;
+    }
+
+    .daily-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .schedule-item, .meal-item, .exercise-item, .task-item {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .schedule-item span, .meal-label {
+      min-width: 80px;
+      font-weight: bold;
+      color: #000;
+    }
+
+    .schedule-item input, .meal-item input, .exercise-item input, .task-item input {
+      flex: 1;
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #80CFFF;
+    }
+
+    .task-checkbox {
+      width: 25px;
+      height: 25px;
+      border: 2px solid #000;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .task-checkbox.checked {
+      background: #4CAF50;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .daily-grid { grid-template-columns: 1fr; }
+      .habit-row { grid-template-columns: 1fr; }
+      .page { padding: 20px; }
+      .page-title { font-size: 2em; }
+      .toolbar { flex-direction: column; }
+    }
+
+    @media print {
+      .toolbar, .nav-buttons, .flower, .butterfly { display: none; }
+      .page { break-inside: avoid; box-shadow: none; margin: 0; padding: 20px; }
+      body { background: white; }
+      .page::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="flower" style="top:10%; left:3%; font-size:30px;">🌸</div>
+  <div class="flower" style="top:20%; right:5%; font-size:25px;">🌺</div>
+  <div class="flower" style="bottom:15%; left:8%; font-size:35px;">🌼</div>
+  <div class="butterfly" style="top:30%; left:12%; font-size:40px;">🦋</div>
+  <div class="butterfly" style="bottom:25%; right:8%; font-size:35px;">🦋</div>
+
+  <div class="planner-container">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="sheet-controls">
+        <div class="sheet-selector">
+          <label>📄 Sheet</label>
+          <input type="number" id="sheetNumber" min="1" max="100" value="1">
+          <span style="color:#80CFFF;">/ <span id="totalSheets">100</span></span>
+        </div>
+        <button class="btn" id="goToSheetBtn">Go →</button>
+        
+        <div class="sheet-navigation">
+          <button class="nav-btn" id="prevSheetBtn">◀</button>
+          <span class="sheet-indicator" id="sheetIndicator">Sheet 1 of 100</span>
+          <button class="nav-btn" id="nextSheetBtn">▶</button>
+        </div>
+        
+        <button class="btn btn-secondary" id="newSheetBtn">➕ New Sheet</button>
+        <button class="btn btn-warning" id="deleteSheetBtn">🗑️ Delete Sheet</button>
+      </div>
+      
+      <div class="datetime-display" id="datetimeDisplay"></div>
+      
+      <div class="sheet-controls">
+        <button class="btn btn-success" id="printBtn">🖨️ Print</button>
+        <button class="btn" id="saveAllBtn">💾 Save All Sheets</button>
+      </div>
+    </div>
+
+    <!-- Planner Content Container (dynamic sheets) -->
+    <div id="plannerContent"></div>
+  </div>
+
+  <script>
+    // Template for a single planner sheet
+    function createSheetTemplate(sheetId, sheetNum) {
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0];
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const currentMonth = monthNames[today.getMonth()] + ' ' + today.getFullYear();
+      
+      return `
+        <div class="page" data-sheet-id="${sheetId}" data-sheet-num="${sheetNum}">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 15px;">
+            <span style="color: #80FFD4;">📅 Last Updated: <span class="sheet-timestamp">${new Date().toLocaleString()}</span></span>
+            <span style="color: #FF9E80;">📄 Sheet ${sheetNum}</span>
+          </div>
+          
+          <h1 class="page-title">Asia's Planner 🌸</h1>
+          
+          <!-- Monthly Planner -->
+          <div class="section-header monthly-bg">🌟 MONTHLY PLANNER 🌟</div>
+          <input type="text" class="month-input" placeholder="MONTH: _______________" value="${currentMonth}" style="width:100%; padding:15px; margin-bottom:20px; background:#1a1a1a; border:1px solid #FF9E80; border-radius:12px; color:#80FFD4;">
+          <div class="calendar-grid" id="calendar-grid-${sheetId}">
+            <div class="calendar-header">SUN</div><div class="calendar-header">MON</div><div class="calendar-header">TUE</div>
+            <div class="calendar-header">WED</div><div class="calendar-header">THU</div><div class="calendar-header">FRI</div>
+            <div class="calendar-header">SAT</div>
+            ${Array(35).fill().map((_, i) => `<div class="calendar-cell"><textarea placeholder="${i+1}"></textarea></div>`).join('')}
+          </div>
+          <div class="notes-section"><strong>🎯 MONTHLY GOALS & NOTES:</strong><textarea placeholder="Write your monthly goals..."></textarea></div>
+
+          <!-- Weekly Planner -->
+          <div class="section-header weekly-bg" style="margin-top:30px;">🗓 WEEKLY PLANNER 🗓</div>
+          <input type="text" class="week-input" placeholder="WEEK OF: _______________" value="Week of ${today.toLocaleDateString()}" style="width:100%; padding:15px; margin-bottom:20px; background:#1a1a1a; border:1px solid #D080FF; border-radius:12px; color:#80FFB2;">
+          <div class="priorities-box"><h3>⭐ TOP 3 PRIORITIES</h3>
+            <div class="priority-item">1. <input type="text" style="flex:1" value="Complete top priority task"></div>
+            <div class="priority-item">2. <input type="text" style="flex:1" value="Exercise routine"></div>
+            <div class="priority-item">3. <input type="text" style="flex:1" value="Learn something new"></div>
+          </div>
+          ${['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'].map(day => `
+            <div class="day-box"><h4>📅 ${day}</h4><textarea placeholder="Today's plans and tasks..."></textarea></div>
+          `).join('')}
+
+          <!-- Daily Planner -->
+          <div class="section-header daily-bg" style="margin-top:30px;">📘 DAILY PLANNER 📘</div>
+          <input type="date" class="date-input" value="${formattedDate}" style="width:100%; padding:15px; margin-bottom:20px; background:#1a1a1a; border:1px solid #80CFFF; border-radius:12px; color:#80CFFF;">
+          
+          <div class="focus-box"><h3>🎯 TODAY'S MAIN FOCUS</h3><textarea placeholder="What is the ONE thing you must accomplish today?"></textarea></div>
+          
+          <div class="daily-grid">
+            <div class="schedule-section"><h3>⏰ DAILY SCHEDULE</h3>
+              ${['6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'].map(time => `
+                <div class="schedule-item"><span><strong>${time}</strong></span><input type="text" placeholder="Activity..."></div>
+              `).join('')}
+            </div>
+            <div class="tasks-section"><h3>✅ DAILY TASKS</h3>
+              <div class="task-category"><h4>📋 IMPORTANT TASKS</h4>
+                ${Array(3).fill().map(() => `<div class="task-item"><div class="task-checkbox" data-checked="false"></div><input type="text" placeholder="Task..."></div>`).join('')}
+              </div>
+              <div class="task-category"><h4>🎯 PROJECT WORK</h4>
+                ${Array(2).fill().map(() => `<div class="task-item"><div class="task-checkbox" data-checked="false"></div><input type="text" placeholder="Project..."></div>`).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="nutrition-section"><h3>🥗 DAILY NUTRITION</h3>
+            ${['Breakfast:', 'Lunch:', 'Dinner:', 'Snacks:', 'Water Intake:'].map(meal => `
+              <div class="meal-item"><span class="meal-label">${meal}</span><input type="text" placeholder="What did you eat?"></div>
+            `).join('')}
+          </div>
+
+          <div class="exercise-section"><h3>💪 DAILY EXERCISE</h3>
+            ${Array(3).fill().map(() => `<div class="exercise-item"><input type="text" placeholder="Activity..."><input type="text" placeholder="Duration..."></div>`).join('')}
+          </div>
+
+          <div class="reflection-section"><h3>🌟 SELF REFLECTION</h3><textarea placeholder="What went well today?"></textarea></div>
+          <div class="spiritual-section"><h3>🙏 GRATITUDE & MINDFULNESS</h3><textarea placeholder="What are you grateful for today?"></textarea></div>
+
+          <div class="habit-tracker"><h3>🕌 WEEKLY PRAYER TRACKER</h3>
+            ${['Tahajjud', 'Fajr', 'Zuhar', 'Asr', 'Magrib', 'Isha'].map(prayer => `
+              <div class="habit-row prayer-habit"><input type="text" value="${prayer}" readonly style="background:#1a1a1a; color:#FFD700;">
+                ${Array(7).fill().map(() => `<div class="habit-checkbox" data-checked="false"></div>`).join('')}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Storage key
+    const STORAGE_KEY = 'asias_planner_sheets';
+    
+    // State
+    let sheets = {};
+    let currentSheetNum = 1;
+    let nextSheetId = 1;
+
+    // Load from localStorage
+    function loadSheets() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          sheets = data.sheets || {};
+          currentSheetNum = data.currentSheetNum || 1;
+          nextSheetId = data.nextSheetId || 1;
+        } catch(e) { console.error(e); }
+      }
+      
+      // Initialize default sheets if empty
+      if (Object.keys(sheets).length === 0) {
+        for (let i = 1; i <= 5; i++) {
+          const sheetId = nextSheetId++;
+          sheets[sheetId] = {
+            id: sheetId,
+            number: i,
+            html: createSheetTemplate(sheetId, i)
+          };
+        }
+      }
+    }
+
+    // Save all sheets
+    function saveSheets() {
+      // Update timestamps
+      document.querySelectorAll('.sheet-timestamp').forEach(el => {
+        el.textContent = new Date().toLocaleString();
+      });
+      
+      // Capture current HTML for each visible sheet
+      for (const [id, sheet] of Object.entries(sheets)) {
+        const pageElement = document.querySelector(`.page[data-sheet-id="${id}"]`);
+        if (pageElement) {
+          sheet.html = pageElement.outerHTML;
+        }
+      }
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        sheets: sheets,
+        currentSheetNum: currentSheetNum,
+        nextSheetId: nextSheetId
+      }));
+      
+      alert('All sheets saved! 📚');
+    }
+
+    // Render current sheet
+    function renderCurrentSheet() {
+      const sheet = Object.values(sheets).find(s => s.number === currentSheetNum);
+      if (!sheet) return;
+      
+      const container = document.getElementById('plannerContent');
+      container.innerHTML = sheet.html;
+      
+      // Update sheet indicator
+      document.getElementById('sheetIndicator').textContent = `Sheet ${currentSheetNum} of ${Object.keys(sheets).length}`;
+      document.getElementById('sheetNumber').value = currentSheetNum;
+      document.getElementById('totalSheets').textContent = Object.keys(sheets).length;
+      
+      // Re-attach event listeners for checkboxes in the new DOM
+      attachCheckboxListeners();
+    }
+
+    // Attach checkbox listeners
+    function attachCheckboxListeners() {
+      // Habit checkboxes
+      document.querySelectorAll('.habit-checkbox').forEach(cb => {
+        const isChecked = cb.getAttribute('data-checked') === 'true';
+        if (isChecked) {
+          cb.classList.add('checked');
+          cb.textContent = '✓';
+        } else {
+          cb.classList.remove('checked');
+          cb.textContent = '';
+        }
+        
+        cb.removeEventListener('click', checkboxHandler);
+        cb.addEventListener('click', checkboxHandler);
+      });
+      
+      // Task checkboxes
+      document.querySelectorAll('.task-checkbox').forEach(cb => {
+        const isChecked = cb.getAttribute('data-checked') === 'true';
+        if (isChecked) {
+          cb.classList.add('checked');
+          cb.textContent = '✓';
+        } else {
+          cb.classList.remove('checked');
+          cb.textContent = '';
+        }
+        
+        cb.removeEventListener('click', taskCheckboxHandler);
+        cb.addEventListener('click', taskCheckboxHandler);
+      });
+    }
+
+    function checkboxHandler(e) {
+      e.stopPropagation();
+      const cb = e.target;
+      const isChecked = cb.getAttribute('data-checked') === 'true';
+      const isPrayer = cb.closest('.prayer-habit') !== null;
+      
+      if (isChecked) {
+        cb.setAttribute('data-checked', 'false');
+        cb.classList.remove('checked');
+        cb.textContent = '';
+      } else {
+        cb.setAttribute('data-checked', 'true');
+        cb.classList.add('checked');
+        cb.textContent = '✓';
+        if (isPrayer) {
+          cb.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)';
+        }
+      }
+      
+      // Auto-save after checkbox toggle
+      saveSheets();
+    }
+
+    function taskCheckboxHandler(e) {
+      e.stopPropagation();
+      const cb = e.target;
+      const isChecked = cb.getAttribute('data-checked') === 'true';
+      
+      if (isChecked) {
+        cb.setAttribute('data-checked', 'false');
+        cb.classList.remove('checked');
+        cb.textContent = '';
+      } else {
+        cb.setAttribute('data-checked', 'true');
+        cb.classList.add('checked');
+        cb.textContent = '✓';
+      }
+      
+      saveSheets();
+    }
+
+    // Create new sheet
+    function newSheet() {
+      const totalSheets = Object.keys(sheets).length;
+      if (totalSheets >= 100) {
+        alert('Maximum 100 sheets reached! 📚');
+        return;
+      }
+      
+      const newNumber = totalSheets + 1;
+      const sheetId = nextSheetId++;
+      sheets[sheetId] = {
+        id: sheetId,
+        number: newNumber,
+        html: createSheetTemplate(sheetId, newNumber)
+      };
+      
+      // Renumber all sheets sequentially
+      let num = 1;
+      for (const [id, sheet] of Object.entries(sheets)) {
+        sheet.number = num++;
+      }
+      
+      currentSheetNum = newNumber;
+      saveSheets();
+      renderCurrentSheet();
+    }
+
+    // Delete current sheet
+    function deleteCurrentSheet() {
+      const sheetIds = Object.keys(sheets);
+      if (sheetIds.length <= 1) {
+        alert('Cannot delete the last sheet! You need at least one sheet.');
+        return;
+      }
+      
+      const toDelete = Object.values(sheets).find(s => s.number === currentSheetNum);
+      if (toDelete) {
+        delete sheets[toDelete.id];
+        
+        // Renumber remaining sheets
+        let num = 1;
+        for (const [id, sheet] of Object.entries(sheets)) {
+          sheet.number = num++;
+        }
+        
+        currentSheetNum = 1;
+        saveSheets();
+        renderCurrentSheet();
+      }
+    }
+
+    // Go to sheet
+    function goToSheet(sheetNum) {
+      const exists = Object.values(sheets).some(s => s.number === sheetNum);
+      if (exists && sheetNum >= 1 && sheetNum <= Object.keys(sheets).length) {
+        currentSheetNum = sheetNum;
+        renderCurrentSheet();
+      } else {
+        alert(`Sheet ${sheetNum} does not exist.`);
+        document.getElementById('sheetNumber').value = currentSheetNum;
+      }
+    }
+
+    // Next sheet
+    function nextSheet() {
+      const maxSheet = Object.keys(sheets).length;
+      if (currentSheetNum < maxSheet) {
+        currentSheetNum++;
+        renderCurrentSheet();
+      }
+    }
+
+    // Previous sheet
+    function prevSheet() {
+      if (currentSheetNum > 1) {
+        currentSheetNum--;
+        renderCurrentSheet();
+      }
+    }
+
+    // Print function
+    function printPlanner() {
+      const sheet = Object.values(sheets).find(s => s.number === currentSheetNum);
+      if (sheet) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+          <html>
+            <head><title>Asia's Planner - Sheet ${currentSheetNum}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              .page { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; }
+              .toolbar, .nav-buttons, .flower, .butterfly { display: none; }
+              textarea, input { border: 1px solid #ccc; }
+            </style>
+            </head>
+            <body>${sheet.html}</body>
+          </html>
+        `);
+        printWindow.print();
+        printWindow.close();
+      }
+    }
+
+    // Update datetime display
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      document.getElementById('datetimeDisplay').innerHTML = `📅 ${now.toLocaleDateString('en-US', options)}`;
+    }
+
+    // Initialize
+    function init() {
+      loadSheets();
+      renderCurrentSheet();
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+      
+      // Event listeners
+      document.getElementById('goToSheetBtn').addEventListener('click', () => {
+        const num = parseInt(document.getElementById('sheetNumber').value);
+        goToSheet(num);
+      });
+      document.getElementById('prevSheetBtn').addEventListener('click', prevSheet);
+      document.getElementById('nextSheetBtn').addEventListener('click', nextSheet);
+      document.getElementById('newSheetBtn').addEventListener('click', newSheet);
+      document.getElementById('deleteSheetBtn').addEventListener('click', deleteCurrentSheet);
+      document.getElementById('printBtn').addEventListener('click', printPlanner);
+      document.getElementById('saveAllBtn').addEventListener('click', saveSheets);
+      
+      // Auto-save on input changes (debounced)
+      let saveTimeout;
+      document.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => saveSheets(), 1000);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
